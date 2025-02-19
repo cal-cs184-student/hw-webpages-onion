@@ -2,6 +2,7 @@
 	<head>
 		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 		<style>
 			h1 {
 				text-align: center;
@@ -21,7 +22,7 @@
 			}
 
 			body {
-				font-family: 'Inter', sans-serif;
+				font-family: Courier New, Courier, monospace;
 			}
 		</style>
 	</head>
@@ -36,14 +37,19 @@
 
 			<br>
 
-			Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+			Link to GitHub repository:  <a href="https://github.com/cal-cs184-student/sp25-hw1-akm">https://github.com/cal-cs184-student/sp25-hw1-akm</a>
 
 			<!--
 	We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
 	-->
 
 			<h2>Overview</h2>
-			Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+			<p>
+				In this homework, I implemented a simple image rasterizer that supports the affine transforms and the antialiasing methods of supersampling, pixel sampling, and level sampling.
+				My program can take a Scalable Vector Graphic (SVG) file and draw it in its GUI. While working on this assignment, I thought a lot about how all of the math behind the graphics worked
+				in a geometric sense so that I wasn't just coding the equations in lecture without understanding why they would work. I feel like this helped me solidify these concepts introduced during lecture.
+				The most challenging part of this assignment was implementing the level sampling because I initially had struggled with the math behind mapping the textures.
+			</p>
 
 			<h2>Task 1: Drawing Single-Color Triangles</h2>
 			<p>
@@ -70,12 +76,12 @@
 				<table style="width: 100%; text-align: center; border-collapse: collapse;">
 					<tr>
 						<td style="text-align: center;">
-							<img src="images/task1-screenshot1.png" width="500px" />
-							<figcaption>The red triangle is missing some pixels where it gets thin.</figcaption>
+							<img src="images/task1-red-triangle.png" width="400px" />
+							<figcaption>Red triangle missing some pixels where it gets thin</figcaption>
 						</td>
 						<td style="text-align: center;">
-							<img src="images/task1-screenshot2.png" width="500px" />
-							<figcaption>The pink triangle is also missing pixels.</figcaption>
+							<img src="images/task1-pink-triangle.png" width="400px" />
+							<figcaption>Missing pixels at the pink triangle's thin edge</figcaption>
 						</td>
 					</tr>
 				</table>
@@ -107,13 +113,22 @@
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 				<tr>
 					<td style="text-align: center;">
-						<img src="images/task2-screenshot1.png" width="350px" />
+						<img src="images/task2-rate1.png" width="400px" />
+						<figcaption>Rate = 1 sample per pixel</figcaption>
 					</td>
 					<td style="text-align: center;">
-						<img src="images/task2-screenshot2.png" width="350px" />
+						<img src="images/task2-rate4.png" width="400px" />
+						<figcaption>Rate = 4 samples per pixel</figcaption>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<img src="images/task2-rate9.png" width="400px" />
+						<figcaption>Rate = 9 samples per pixel</figcaption>
 					</td>
 					<td style="text-align: center;">
-						<img src="images/task2-screenshot3.png" width="350px" />
+						<img src="images/task2-rate16.png" width="400px" />
+						<figcaption>Rate = 16 samples per pixel</figcaption>
 					</td>
 				</tr>
 			</table>
@@ -131,7 +146,7 @@
 				he's mid-jump. He's also a golden yellow because that's my favorite color.
 			</p>
 			<figure>
-				<img src="images/task3-screenshot.png" width="500px" />
+				<img src="images/task3-robot-man.png" width="500px" />
 				<figcaption>Robot man doing a dance.</figcaption>
 			</figure>
 
@@ -148,25 +163,26 @@
 				weight and their respective colors.
 			</p>
 			<p>
-				In the extra triangles I made below, we can see how colors being assigned to each vertex of a triangle can result in a gradient between the colors inside. Each point in the triangle gets sampled to be a combination
-				of the colors I assigned to the vertices. The color wheel image is a combination of multiple different color-blended triangles being put together to create a seamless gradient.
+				In the extra triangles I made below, we can see how colors being assigned to each vertex of a triangle can result in a gradient between the colors inside. I tried out different colors at the triangles' vertices to
+				portray the way any color value can be interpolated when calculating barycentric coordinates. Each point in the triangle gets sampled to be a combination of the colors I assigned to the vertices.
+				The color wheel image is a combination of multiple different color-blended triangles being put together to create a seamless gradient.
 			</p>
 
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 				<tr>
 					<td style="text-align: center;">
-						<img src="images/task4-custom-triangle-1.png" width="350px" />
+						<img src="images/task4-rgb-triangle.png" width="400px" />
 					</td>
 					<td style="text-align: center;">
-						<img src="images/task4-custom-triangle-2.png" width="350px" />
-					</td>
-				</tr>
-				<tr>
-					<td style="text-align: center;">
-						<img src="images/task4-colorwheel.png" width="350px" />
+						<img src="images/task4-altcolor-triangle.png" width="400px" />
 					</td>
 				</tr>
 			</table>
+			<figure>
+				<img src="images/task4-color-wheel.png" width="500px" />
+				<figcaption>A color wheel that shows intermediate color values</figcaption>
+			</figure>
+
 
 			<h2>Task 5: "Pixel sampling" for texture mapping</h2>
 			<p>
@@ -179,44 +195,76 @@
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 				<tr>
 					<td style="text-align: center;">
-						<img src="images/task5-nn-rate1.png" width="350px" />
+						<img src="images/task5-nn-1.png" width="400px" />
 						<figcaption>Nearest sampling, 1 sample per pixel</figcaption>
 					</td>
 					<td style="text-align: center;">
-						<img src="images/task5-bl-rate1.png" width="350px" />
+						<img src="images/task5-bl-1.png" width="400px" />
 						<figcaption>Bilinear sampling, 1 sample per pixel</figcaption>
 					</td>
 				</tr>
-                <tr>
-                    <td style="text-align: center;">
-                        <img src="images/task5-nn-rate16.png" width="350px" />
-                        <figcaption>Nearest sampling, 16 samples per pixel</figcaption>
-                    </td>
-                    <td style="text-align: center;">
-                        <img src="images/task5-bl-rate16.png" width="350px" />
-                        <figcaption>Bilinear sampling, 16 samples per pixel</figcaption>
-                    </td>
-                </tr>
+				<tr>
+					<td style="text-align: center;">
+						<img src="images/task5-nn-16.png" width="400px" />
+						<figcaption>Nearest sampling, 16 samples per pixel</figcaption>
+					</td>
+					<td style="text-align: center;">
+						<img src="images/task5-bl-16.png" width="400px" />
+						<figcaption>Bilinear sampling, 16 samples per pixel</figcaption>
+					</td>
+				</tr>
 			</table>
 			<p>
 				We can see in the images above that the grid of the map gets chopped up with nearest sampling whereas with bilinear sampling, the lines are still broken but they're more smoothed out. Nearest sampling leads to sharper edges
-				in areas that change color and can't show as smooth of a transition as bilinear sampling that takes into account multiple pixels' information. 
+				in areas that change color and can't show as smooth of a transition as bilinear sampling that takes into account multiple pixels' information.
 				At the higher sampling rate of 16, I don't see as much of a difference between the images. I feel like bilinear sampling has more of an advantage over nearest sampling only at lower sampling rates and image resolutions. Because it takes the computer more
 				work to do bilinear interpolation, I think it loses if the sampling rate is higher because it results in almost the same quality of image as nearest sampling despite nearest sampling requiring less computing. When nearest sampling has access
-				to lots of information, the quality of the texture mapping will also be good. 
+				to lots of information, the quality of the texture mapping will also be good.
 			</p>
 
 
 			<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
 			<p>
-				Explain level sampling
+				When mapping a texture to an object, depending on the way the object is being viewed at a distance, the texture image may become aliased due to varying depths and distorition. To reduce this effect, we can use the level sampling of mipmaps to ensure that
+				we're picking texels from a version of the image that'll give us the least aliasing. Mipmaps are a series of texture images that decrease in resolution so that we can portray different perspectives more accurately.
+				To find the correct mipmap level, we can calculate the barycentric coordinates (u,v) of a sample point (x,y) based on the given triangle vertices. From there, we can also calculate the partial derivatives with respect to x and y by
+				calculating the barycentric coordinates of (x+1, y) and (x, y+1) respectively. I then use the equation shown in lecture to take the log2 of the larger normalized difference vectors (uv - dx/uv) and (uv - dy/uv), scaled to the
+				width and height of the mipmap, to get the final level. While writing this in the get_level() function I came across a bug of out of bounds indexing errors which I was able to fix by clamping the calculated mipmap level to be non-negative and less than or equal to the size of the mipmap.
 			</p>
 			<p>
-				Explain tradeoffs of each method
+				Because this calculation doesn't always end with an integer value, we can pick between different types of level sampling-L_ZERO, L_NEAREST, and L_LINEAR-to select an appropriate mipmap level to sample a texel from.
+				L_ZERO defaults to using the highest resolution texture, or level zero mipmap, L_NEAREST rounds to the closest mipmap level within bounds, and L_LINEAR interpolates between the closest two mipmap levels to get an average
+				of the texel from both levels.
 			</p>
-
-			<h2>(Optional) Task 7: Extra Credit - Draw Something Creative!</h2>
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+				<tr>
+					<td style="text-align: center;">
+						<img src="images/task6-lzero-pnearest.png" width="400px" />
+						<figcaption>Level Zero + Nearest Pixel Sampling</figcaption>
+					</td>
+					<td style="text-align: center;">
+						<img src="images/task6-lnearest-pnearest.png" width="400px" />
+						<figcaption>Nearest Level + Nearest Pixel Sampling</figcaption>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<img src="images/task6-lzero-plinear.png" width="400px" />
+						<figcaption>Level Zero + Bilinear Pixel Sampling</figcaption>
+					</td>
+					<td style="text-align: center;">
+						<img src="images/task6-lnearest-plinear.png" width="400px" />
+						<figcaption>Nearest Level + Bilinear Pixel Sampling</figcaption>
+					</td>
+				</tr>
+			</table>
+			<p>
+				I enhanced my pixel sampling algorithm from Task 5 to support multiple combinations of pixel sampling, level sampling, and supersampling, all all of which improve antialiasing while rendering images. Looking at the memory usage of different antialiasing methods,
+				level sampling improves image quality but requires additional memory to store mipmaps, while supersampling also demands more memory due to the increased number of subpixels to keep values for in the sample buffer. Additionally, methods that offer superior antialiasing,
+				such as linear level sampling and bilinear pixel sampling, result in longer execution times. This is because the algorithm has to loop through the pixels of the triangle multiple times, especially at higher sample rates,
+				and perform more complex computations to consider neighboring pixels. On the other hand, nearest sampling is faster for both level and pixel sampling, but it may sacrifice fine details when it simplifies texel values by rounding. The effects of these techniques can amplify when combined—methods
+				that enhance image quality to a higher degree come with much higher computational costs, and their impact on performance can compound, leading to slower runtimes and higher memory usage.
+			</p>
 
 		</div>
 	</body>
