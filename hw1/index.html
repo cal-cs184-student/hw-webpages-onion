@@ -262,7 +262,7 @@
 				I enhanced my pixel sampling algorithm from Task 5 to support multiple combinations of pixel sampling, level sampling, and supersampling, all all of which improve antialiasing while rendering images. Looking at the memory usage of different antialiasing methods,
 				level sampling improves image quality but requires additional memory to store mipmaps, while supersampling also demands more memory due to the increased number of subpixels to keep values for in the sample buffer. Additionally, methods that offer superior antialiasing,
 				such as linear level sampling and bilinear pixel sampling, result in longer execution times. This is because the algorithm has to loop through the pixels of the triangle multiple times, especially at higher sample rates,
-				and perform more complex computations to consider neighboring pixels. On the other hand, nearest sampling is faster for both level and pixel sampling, but it may sacrifice fine details when it simplifies texel values by rounding. The effects of these techniques can amplify when combined—methods
+				and perform more complex computations to consider neighboring pixels. On the other hand, nearest sampling is faster for both level and pixel sampling, but it may sacrifice fine details when it simplifies texel values by rounding. The effects of these techniques can amplify when combined; methods
 				that enhance image quality to a higher degree come with much higher computational costs, and their impact on performance can compound, leading to slower runtimes and higher memory usage.
 			</p>
 
