@@ -1,0 +1,373 @@
+<html>
+<head>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+	<style>
+		h1 {
+			text-align: center;
+		}
+
+		.container {
+			margin: 0 auto;
+			padding: 60px 20%;
+		}
+
+		figure {
+			text-align: center;
+		}
+
+		img {
+			display: inline-block;
+		}
+
+		body {
+			font-family: Courier New, Courier, monospace;
+		}
+	</style>
+</head>
+	<body>
+		<div class="container">
+			<h1>CS184/284A Spring 2025 Homework 4 Write-Up</h1>
+			<div style="text-align: center;">Names: </div>
+
+			<br>
+
+			Link to webpage: <a href="https://cal-cs184-student.github.io/hw-webpages-onion/hw4/index.html">https://cal-cs184-student.github.io/hw-webpages-onion/hw4/index.html</a>
+
+			<br>
+
+			Link to GitHub repository: <a href="https://github.com/cal-cs184-student/sp25-hw4-anyita">https://github.com/cal-cs184-student/sp25-hw4-anyita</a>
+
+			<!--
+	We've already added one heading per part, to make your write-up as navigable when grading. Please fit your write-up within these sections!
+	-->
+
+			<h2>Overview</h2>
+			<p>
+				In this homework, I implemented a cloth simulation that uses a mass-spring system that considers an object's interactions with external forces as well as itself. I got to observe how changing parameters 
+				like the cloth's density and the spring constant in the mesh affected the cloth's behavior. I also implemented multiple different types of GLSL shaders which I found to be the most fun part of the assignment. 
+				I'd never coded anything for a GPU and I enjoyed seeing how the equations we've seen during lectures actually worked in simulating the different ways light can be reflected off of objects. (My favorite one to look at
+				 is the mirror shader.) The hardest part of this assignment for me was figuring out how to handle the self-collisions in the cloth.
+			</p>
+
+			<h2>Part 1: Masses and springs</h2>
+			<p>
+				In this part of the homework, I implmented the function <code>buildGrid()</code> which creates point masses and the structural, shearing, and bending springs between them. First, I loop through the
+				rows then columns of the grid we're intending to make and placing point masses into a vector in row-major order. The position of the point mass depends on if the orientation is horizontal or vertical.
+				As I place the point masses, I initially set their <code>pinned</code> to false then after all point masses are place, I loop through the coordinates that are pinned and set them to true. Lastly, I loop
+				through the coordinates of the grid to get each point mass and assign its springs. I make sure to consider the (literal) edge cases where they can't have springs to the left or top of them such as the
+				left and top edges of the grid.
+			</p>
+
+			<figure>
+				<img src="./images/p1-pinned2.png" style="width:70%" />
+				<figcaption><b>pinned2.json</b></figcaption>
+			</figure>
+			<figure>
+				<img src="./images/p1-without-shear.png" width="70%" />
+				<figcaption><b>Without shear</b></figcaption>
+			</figure>
+			<figure>
+				<img src="./images/p1-shear-only.png" width="70%" />
+				<figcaption><b>Shear only</b></figcaption>
+			</figure>
+			<figure>
+				<img src="./images/p1-all-constraints.png" width="70%" />
+				<figcaption><b>All spring constraints</b></figcaption>
+			</figure>
+
+			<h2>Part 2: Simulation via numerical integration</h2>
+			<p>
+				Here, I implemented the <code>simulate()</code> function which uses Verlet integration to update the positions of all the point masses in a grid based on all the external forces acting on them.
+				During this part, I had a hard time debugging why my simulation was incorrect, only to realize I had been calculating the magnitude between vectors incorrectly the whole time. In the end, the function
+				calculates the total external force on each point and updates the point mass' position and velocity. Before this though, we loop through all of the springs and calculate how much force they exert on their
+				respective end ponit masses.
+			</p>
+			<p>
+				Below are images of the simulation with different spring constant <code>ks</code> values. The larger this value is, the more stiff the spring acts so the cloth also becomes stiffer. I also noticed that
+				increasing the spring constant influenced how long it took for the cloth to fall because of the influence on the cloth's stiffness. Because the cloth is less stiff at lower values, I can see the formation of tiny
+				ripples at the top when it sags in its rest state and the cloth appears much thinner.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p2-ks10.png" width="400px" />
+							<figcaption>ks = 10</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-alldefault.png" width="400px" />
+							<figcaption>ks = 5000 (default)</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p2-ks50000.png" width="400px" />
+							<figcaption>ks = 50000</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-ks100000.png" width="400px" />
+							<figcaption>ks = 100000</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				Changing the value of the density of the cloth affects how heavy it appears and how much gravity affects it. At lower densities, the cloth doesn't sag down as much whereas at higher values
+				we can see the cloth droop down a lot more in the center. At very high values, the cloth even loses those ripples, appearing very similar to how the cloth looks when we use low spring constant
+				values. Because of this, it looks like adjusting the density has a similar effect to the inverse of adjusting the spring constant.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p2-d1.png" width="400px" />
+							<figcaption>density = 1</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-alldefault.png" width="400px" />
+							<figcaption>density = 15 (default)</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p2-d500.png" width="400px" />
+							<figcaption>density = 500</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-ks100000.png" width="400px" />
+							<figcaption>density = 10000</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				Changing the damping affects how much the cloth moves around until it reaches a rest position. Damping is how we consider the loss of energy due to friction in the simulation so at lower values, the cloth moves back and forth
+				a lot and shows ripples as it moves very quickly. At higher values, the cloth reaches a rest position much slower and doesn't move around as much or have as many waves in it. There also doesn't seem to be much difference in the way
+				the cloth appears at 0.2% damping versus 50% damping versus 98% damping except for how the simulation gets slower as the damping increases.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p2-damp01.png" width="400px" />
+							<figcaption>damping = 0.01%</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-damp01back.png" width="400px" />
+							<figcaption>damping = 0.01%</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p2-alldefault.png" width="350px" />
+							<figcaption>damping = 0.2%</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-damping50.png" width="350px" />
+							<figcaption>damping = 50%</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p2-damp98.png" width="350px" />
+							<figcaption>damping = 98% </figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<figure>
+				<img src="./images/p2-pinned4.png" style="width:70%" />
+				<figcaption><b>pinned4.json in resting state (all default parameters)</b></figcaption>
+			</figure>
+
+
+			<h2>Part 3: Handling collisions with other objects</h2>
+			<p>
+				Before going into the sphere and plane collision, I made sure to update my <code>simulate()</code> from part 2 to ensure the collisions are handled for every point mass and for every collision object. I use two loops
+				and call <code>collision()</code> on each combination of collision object and point mass.
+			</p>
+			<p>
+				For the sphere collisions, I first calculate the direction and distance between the point mass's current position to the sphere's
+				center. Then, I check if that distance is less than the radius of the sphere because that means the point mass would be inside of the sphere. If this is true, I calculate the point at which the point mass
+				intersected the sphere because that is the closest point the point mass is allowed to be to the sphere. Afterwards, I use that tangent to calculate how much displacement is needed to move the point on top of the sphere, scaled by the friction,
+				and update the position of the point mass.
+			</p>
+			<p>
+				The pictures below show the difference between the sphere collision with different spring constant values. The lower the spring constant, the more the cloth appears to sag downwards and it appears a lot flowier, almost wrapping the top of the sphere.
+				I can see more folds in the cloth and they start much lower on the sphere than they do at the higher spring constant values. Because higher spring constants mean a more stiff cloth, the cloth doesn't fall as much at ks = 50000 and the fewer folds are
+				larger and lay higher up on the sphere.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p3-sphere-500ks.png" width="350px" />
+							<figcaption>ks = 500</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p3-sphere-5000ks.png" width="350px" />
+							<figcaption>ks = 5000 (default)</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p3-sphere-50000ks.png" width="350px" />
+							<figcaption>ks = 50000</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				As for the plane collisions, I first calculate the distance between the normal of the plane and both the point mass's current and previous positions. I use these values to calculate which side of the plane the point mass is at both the current and
+				previous time step. If the signs of the dot products are different, that means the point mass has crossed the plane and I need to calculate the point at which the point mass intersected the plane. I then calculate the distance between the point mass's
+				current position and the plane and use that to calculate the displacement needed to move the point mass back on top of the plane to update the position of the point mass accordingly.
+			</p>
+			<figure>
+				<img src="./images/p3-plane.png" style="width:70%" />
+				<figcaption>The cloth sitting on top of the plane in plane.json</figcaption>
+			</figure>
+
+			<h2>Part 4: Handling self-collisions</h2>
+			<p>
+				In this part, I modified my original <code>simulate()</code> code to handle self collisions by implementing the <code>selfCollision()</code> function. First, I edited my <code>simulate()</code> code to loop over every point mass to check for self collisions.
+				First, I made a custom hashing function that takes the coordinates of a point mass and assigns a unique value to it. I partition a 3D space into boxes and use get the floor of every coordinate to figure out what box its in. Then, inspired by this <a href="https://matthias-research.github.io/pages/tenMinutePhysics/11-hashing.pdf">paper</a>
+				I found online, I use large prime numbers to create a unique hash for each point mass. I use this hashing function in <code>buildSpatialGrid()</code> when I loop through every point mass to assign them to their respective boxes. If a hash code doesn't already exist in the map, a new entry is created to hold points with the same hash code.
+				Then, in <code>selfCollision()</code>, given a point mass, I find the point mass's hash bin and loop through every point mass in the bin to check if they are within 2 * thickness of each other, except for with the original point mass itself.
+				When points are closer than twice the thickness, I calculate correction vectors to push them apart. These corrections are averaged by <code>simulation_steps</code> and I use this average to update the position of the original point mass.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p4-step1.png" width="350px" />
+							<figcaption>Initial self-collision</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p4-step2.png" width="350px" />
+							<figcaption>Later self-collisions</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p4-step3.png" width="350px" />
+							<figcaption>Rest state</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				When I use lower spring constants, the cloth has a lot more wrinkles and ripples as it falls to a rest position. I believe this is because the cloth is less stiff when this value is lower. I can see this in the much larger waves that form when I
+				use higher spring constants. As for adjusting the value of density, the cloth is also stiffer at lower values like the spring constant is at higher values. I can see this in the way the cloth folds on itself in larger pieces at the lower density.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p4-lowspring.png" width="400px" />
+							<figcaption>ks = 10</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p4-highspring.png" width="400px" />
+							<figcaption>ks = 10000</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p4-lowd.png" width="400px" />
+							<figcaption>density = 5 g/cm^2</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p4-hid.png" width="400px" />
+							<figcaption>density = 250 g/cm^2</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<h2>Part 5: Shaders</h2>
+			<p>
+				A shader is a program written for GPUs that specifies how graphics should be rendered to take advantage of parallel computing in order to speed up real-time graphic rendering.
+				Shaders handle this rendering through a pipeline that does vertex shading then fragment shading. Vertex shaders control the vertices of a given 3D model, so it is used to control the
+				shape of an object. For instance, in the case of displacement shading, the vertex shader handles changing the geometry of an object to match the texture. Fragment shaders are what we use to
+				figure out the color of an object at its fragments formed by the pixels as they consider the position of a vertex and its position relative to the light and camera in the scene. This part figures out what color a
+				pixel should be based on that pixel's vertex. This process combines both parts in order for us to control the final appearance of an object.
+			</p>
+			<p>
+				The Blinn-Phong shading model divides shading into three different components: ambient, diffuse, and specular shading. It takes these three components, as if they're all different layers of lighting colors,
+				and adds them together to get the final color of an object that simulates realistic lighting. First, ambient shading provides the object its base color because all things are hit by some base level of light and appears as more than black.
+				Diffuse shading considers all of the light that directly hits an object regardless of where the camera is in the scene. Finally, specular lighting refers to all of the light that reflects off of an object and is visible to the camera, such as
+				parts of an object that appear especially shiny.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p5-fullphong.png" width="400px" />
+							<figcaption>Full Blinn-Phong shading</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p5-ambient.png" width="400px" />
+							<figcaption>Ambient only</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p5-diffuse.png" width="400px" />
+							<figcaption>Diffuse only</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p5-specular.png" width="400px" />
+							<figcaption>Specular only</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				Below are images of my texture shader using Van Gogh's Starry Night
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="./images/p5-custom-texture.png" style="width:400px" />
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p5-custom-texture-2.png" width="400px" />
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p>
+				The main difference between bump mapping and displacement mapping is that bump mapping provides the illusion of a surface being bumpy whereas displacement mapping actually alters the geometry of an object.
+				Bump mapping does this by changing the normals of the surface to make it reflect lighting as if the surface actually has texture. Displacement mapping actually moves the position of an objects vertices to match the texture
+				provided in a more accurate way. Changing the coarseness of the texture reveals to us the difference between the two methods. With higher coarseness, ridges in textures is more apparent in displacement mapping physically whereas
+				there isn't much differnce between the bump mapping images at different coarseness levels. Displacement mapping gets more accurate as we increase the sampling rate, especially if the texture is very detailed, but this could
+				potentially slow down the rendering whereas the illusion created by bump mapping can still provide a similar effect with less computation.
+			</p>
+			<div style="display: flex; flex-direction: column; align-items: center;">
+				<table style="width: 100%; text-align: center; border-collapse: collapse;">
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p5-bump-16.png" width="400px" />
+							<figcaption>Bump mapping, -o 16 -a 16</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p5-disp-16.png" width="400px" />
+							<figcaption>Displacement mapping, -o 16 -a 16</figcaption>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center;">
+							<img src="images/p5-bump-128.png" width="400px" />
+							<figcaption>Bump mapping, -o 128 -a 128</figcaption>
+						</td>
+						<td style="text-align: center;">
+							<img src="images/p5-displace-128.png" width="400px" />
+							<figcaption>Displacement mapping, -o 128 -a 128</figcaption>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<figure>
+				<img src="./images/p5-mirror.png" style="width:70%" />
+				<figcaption>Mirror shader</figcaption>
+			</figure>
+		</div>
+	</body>
+</html>
